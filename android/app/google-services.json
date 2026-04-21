@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "934609473842",
+    "project_id": "mangacans",
+    "storage_bucket": "mangacans.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:934609473842:android:39ad1a2a55fdda51d9072b",
+        "android_client_info": {
+          "package_name": "com.example.manga_app_code"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgy70LVW8LWyNBOkUsOYIbx77CgZo4NW8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
