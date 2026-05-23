@@ -19,3 +19,9 @@ Thumbs.db
 
 # Windows reserved names
 nul
+
+# Large PDFs (host separately)
+Kumpulankomik/*.pdf
+Kumpulannovel/*.pdf
+re zero/*.pdf
+
