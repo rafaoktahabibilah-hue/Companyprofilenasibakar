@@ -1178,6 +1178,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let selectedAmount = 10000;
+  let snapLoaded = false;
+
+  async function loadSnapScript() {
+    if (snapLoaded) return true;
+    if (window.snap) { snapLoaded = true; return true; }
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+      script.setAttribute('data-client-key', 'SB-Mid-client-xxxxx');
+      script.onload = () => { snapLoaded = true; resolve(true); };
+      script.onerror = () => resolve(false);
+      document.head.appendChild(script);
+    });
+  }
 
   function openSupportModal() {
     supportError.style.display = 'none';
@@ -1187,6 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     amountButtons.forEach(b => b.classList.remove('selected'));
     const defaultBtn = document.querySelector('.btn-amount[data-amount="10000"]');
     if (defaultBtn) defaultBtn.classList.add('selected');
+    loadSnapScript();
   }
 
   function closeSupportModal() {
@@ -1246,8 +1261,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      if (!window.snap) {
-        supportError.textContent = 'Sistem pembayaran sedang loading, coba lagi.';
+      if (!window.snap && !(await loadSnapScript())) {
+        supportError.textContent = 'Sistem pembayaran gagal dimuat, coba lagi.';
         supportError.style.display = 'block';
         btnPay.disabled = false;
         btnPay.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg> Bayar Sekarang';
