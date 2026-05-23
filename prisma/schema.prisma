@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String     @id @default(uuid())
+  email          String     @unique
+  displayName    String?
+  photoURL       String?
+  selectedAvatar String?
+  bio            String?
+  isAdmin        Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  favorites      Favorite[]
+  history        History[]
+}
+
+model Favorite {
+  id      String   @id @default(uuid())
+  userId  String
+  mangaId String
+  title   String
+  cover   String
+  genre   String
+  type    String
+  addedAt DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mangaId])
+}
+
+model History {
+  id          String   @id @default(uuid())
+  userId      String
+  mangaId     String
+  title       String
+  cover       String
+  genre       String
+  type        String
+  lastChapter String?
+  lastReadAt  DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mangaId])
+}
+
+model PollVote {
+  id          String   @id @default(uuid())
+  userId      String
+  characterId String
+  votedAt     DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, characterId])
+}
