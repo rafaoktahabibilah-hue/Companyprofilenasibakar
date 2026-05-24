@@ -1152,6 +1152,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const { error } = await supabase.from('PollVote').insert({
         userId: currentUser.id,
         characterId: charId
+      });
+
+      if (error) {
+        if (error.code === '23505') {
+          showToast('Kamu sudah memilih!');
+        } else {
+          showToast('Gagal vote, coba lagi.');
+        }
+        return;
+      }
+
+      showToast(`Kamu berhasil memilih ${char.name}!`);
+      loadPollResults();
+    } catch (err) {
+      showToast('Terjadi kesalahan, coba lagi.');
+    }
+  }
+
   // ─── RATING SYSTEM ───
   let ratingsCache = {};
 
@@ -1321,22 +1339,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadAllRatings();
-});
-      if (error) {
-        if (error.code === '23505') {
-          showToast('Kamu sudah memilih!');
-        } else {
-          showToast('Gagal vote, coba lagi.');
-        }
-        return;
-      }
-
-      showToast(`Kamu berhasil memilih ${char.name}!`);
-      loadPollResults();
-    } catch (err) {
-      showToast('Terjadi kesalahan, coba lagi.');
-    }
-  }
 
   function hideAllSections() {
     document.querySelectorAll('section[id]').forEach(s => {
