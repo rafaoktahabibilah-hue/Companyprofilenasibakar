@@ -1289,7 +1289,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     } catch (err) {
-      supportError.textContent = 'Gagal menghubungi server.';
+      console.error('Midtrans fetch error:', err);
+      supportError.textContent = 'Gagal menghubungi server. Pastikan MIDTRANS_SERVER_KEY sudah di-set di Vercel Environment Variables.';
       supportError.style.display = 'block';
     } finally {
       btnPay.disabled = false;
