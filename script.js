@@ -1186,7 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return new Promise((resolve) => {
       const script = document.createElement('script');
       script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
-      script.setAttribute('data-client-key', 'SB-Mid-client-xxxxx');
+      script.setAttribute('data-client-key', 'SB-Mid-client-HmXqYsjNTD-RCtTj');
       script.onload = () => { snapLoaded = true; resolve(true); };
       script.onerror = () => resolve(false);
       document.head.appendChild(script);
