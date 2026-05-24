@@ -3173,3 +3173,66 @@ button {
 @media (max-width: 768px) {
   .review-list { max-height: 200px; }
 }
+
+/* ===== NOTIFICATION BELL ===== */
+.btn-bell {
+  position: relative;
+  padding: 8px;
+  border-radius: 50%;
+  color: var(--text-medium);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+.btn-bell:hover { background: var(--bg-light); color: var(--primary); }
+
+.bell-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--primary);
+  color: white;
+  border-radius: 9px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+.bell-badge:empty, .bell-badge[data-count="0"] { display: none; }
+
+/* ===== BROADCAST ITEMS ===== */
+.broadcast-item {
+  padding: 14px 16px;
+  background: var(--bg-light);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary);
+}
+
+.broadcast-item.unread {
+  background: rgba(37, 99, 235, 0.06);
+  border-left-color: var(--accent-yellow);
+}
+
+.broadcast-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.broadcast-message {
+  font-size: 0.85rem;
+  color: var(--text-medium);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.broadcast-time {
+  font-size: 0.7rem;
+  color: var(--text-light);
+}

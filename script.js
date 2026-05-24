@@ -266,6 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentUser = user;
     if (user) {
       btnLogin.style.display = 'none';
+      btnBell.style.display = 'flex';
       userMenu.style.display = 'block';
       dropdownFavorites.style.display = 'flex';
       document.getElementById('dropdown-history').style.display = 'flex';
@@ -277,6 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateDropdownUI();
     } else {
       btnLogin.style.display = 'block';
+      btnBell.style.display = 'none';
       userMenu.style.display = 'none';
       dropdownMenu.classList.remove('active');
       dropdownFavorites.style.display = 'none';
@@ -1182,18 +1184,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!ratingsCache[key]) ratingsCache[key] = { total: 0, count: 0, userRating: 0 };
         ratingsCache[key].total += r.rating;
         ratingsCache[key].count++;
-        if (currentUser && r.userId === currentUser.id) {
-          ratingsCache[key].userRating = r.rating;
-        }
+        if (currentUser && r.userId === currentUser.id) ratingsCache[key].userRating = r.rating;
       });
     }
     renderAllRatings();
   }
 
   function renderAllRatings() {
-    document.querySelectorAll('.card-manga, .card-novel').forEach(card => {
-      renderRatingCard(card);
-    });
+    document.querySelectorAll('.card-manga, .card-novel').forEach(card => renderRatingCard(card));
   }
 
   function renderRatingCard(card) {
@@ -1204,16 +1202,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const starStr = [1,2,3,4,5].map(i =>
       `<span class="star ${i <= (info.userRating || avg) ? 'filled' : ''}" data-value="${i}">★</span>`
     ).join('');
-
-    let existing = card.querySelector('.rating-row');
+    const existing = card.querySelector('.rating-row');
     if (existing) existing.remove();
-
     const row = document.createElement('div');
     row.className = 'rating-row';
-    row.innerHTML = `
-      <span class="stars ${currentUser ? 'interactive' : ''}">${starStr}</span>
-      ${avg > 0 ? `<span class="rating-avg">${(info.total/info.count).toFixed(1)}</span><span class="rating-count">(${info.count})</span>` : '<span class="rating-count">no ratings</span>'}
-    `;
+    row.innerHTML = `<span class="stars ${currentUser ? 'interactive' : ''}">${starStr}</span>${avg > 0 ? '<span class="rating-avg">' + (info.total/info.count).toFixed(1) + '</span><span class="rating-count">(' + info.count + ')</span>' : '<span class="rating-count">no ratings</span>'}`;
     card.querySelector('.card-info')?.appendChild(row);
   }
 
@@ -1226,17 +1219,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemId = card.dataset.id;
     const rating = parseInt(starEl.dataset.value);
     if (!itemId || !rating) return;
-
     try {
-      await supabase.from('Rating').upsert({
-        userId: currentUser.id,
-        mangaId: itemId,
-        rating: rating
-      }, { onConflict: 'userId,mangaId' });
+      await supabase.from('Rating').upsert({ userId: currentUser.id, mangaId: itemId, rating }, { onConflict: 'userId,mangaId' });
       await loadAllRatings();
-    } catch (err) {
-      console.error('Rating error:', err);
-    }
+    } catch (err) { console.error('Rating error:', err); }
   });
 
   // ─── REVIEW SYSTEM ───
@@ -1255,19 +1241,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data && data.length > 0) {
       reviewEmpty.style.display = 'none';
       reviewList.style.display = 'flex';
-      reviewList.innerHTML = data.map(r => `
-        <div class="review-item">
-          <div class="review-header">
-            <span class="review-user">${escapeHTML(r.userName)}</span>
-            <span class="review-time">${timeAgo(r.createdAt)}</span>
-          </div>
-          <p class="review-text">${escapeHTML(r.text)}</p>
-        </div>
-      `).join('');
-    } else {
-      reviewEmpty.style.display = 'block';
-      reviewList.style.display = 'none';
-    }
+      reviewList.innerHTML = data.map(r => `<div class="review-item"><div class="review-header"><span class="review-user">${escapeHTML(r.userName)}</span><span class="review-time">${timeAgo(r.createdAt)}</span></div><p class="review-text">${escapeHTML(r.text)}</p></div>`).join('');
+    } else { reviewEmpty.style.display = 'block'; reviewList.style.display = 'none'; }
   }
 
   function openReviewModal(mangaId, mangaTitle) {
@@ -1280,65 +1255,132 @@ document.addEventListener('DOMContentLoaded', () => {
     reviewModal.classList.add('active');
   }
 
-  function closeReviewModal() {
-    reviewModal.classList.remove('active');
-  }
-
-  reviewClose.addEventListener('click', closeReviewModal);
-  reviewModal.addEventListener('click', (e) => { if (e.target === reviewModal) closeReviewModal(); });
+  reviewClose.addEventListener('click', () => reviewModal.classList.remove('active'));
+  reviewModal.addEventListener('click', (e) => { if (e.target === reviewModal) reviewModal.classList.remove('active'); });
 
   reviewSubmit.addEventListener('click', async () => {
     const text = reviewInput.value.trim();
     if (!text || text.length < 3) { showToast('Komentar minimal 3 karakter.'); return; }
     if (text.length > 300) { showToast('Maksimal 300 karakter.'); return; }
-
     reviewSubmit.disabled = true;
     reviewSubmit.textContent = '...';
     try {
-      const { error } = await supabase.from('Review').insert({
-        userId: currentUser.id,
-        userName: currentUser.user_metadata?.displayName || currentUser.email?.split('@')[0] || 'Anon',
-        mangaId: currentReviewMangaId,
-        mangaTitle: currentReviewMangaTitle,
-        text: text
-      });
+      const { error } = await supabase.from('Review').insert({ userId: currentUser.id, userName: currentUser.user_metadata?.displayName || currentUser.email?.split('@')[0] || 'Anon', mangaId: currentReviewMangaId, mangaTitle: currentReviewMangaTitle, text });
       if (error) throw error;
       reviewInput.value = '';
       await loadReviews(currentReviewMangaId);
       showToast('Komentar terkirim!');
-    } catch (err) {
-      showToast('Gagal kirim komentar.');
-    } finally {
-      reviewSubmit.disabled = false;
-      reviewSubmit.textContent = 'Kirim';
-    }
+    } catch (err) { showToast('Gagal kirim komentar.'); }
+    finally { reviewSubmit.disabled = false; reviewSubmit.textContent = 'Kirim'; }
   });
 
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-review');
-    if (btn) {
-      const card = btn.closest('.card-manga, .card-novel');
-      if (card) openReviewModal(card.dataset.id, card.dataset.title);
+    if (btn) { const card = btn.closest('.card-manga, .card-novel'); if (card) openReviewModal(card.dataset.id, card.dataset.title); }
+  });
+
+  loadAllRatings();
+
+  // ─── BROADCAST / NOTIFICATION SYSTEM ───
+  const btnBell = document.getElementById('btn-bell');
+  const bellBadge = document.getElementById('bell-badge');
+  const broadcastModalEl = document.getElementById('broadcast-modal');
+  const broadcastCloseEl = document.getElementById('broadcast-close');
+  const broadcastListEl = document.getElementById('broadcast-list');
+  const broadcastEmptyEl = document.getElementById('broadcast-empty');
+  const broadcastFormEl = document.getElementById('broadcast-form');
+  const broadcastTitleEl = document.getElementById('broadcast-title');
+  const broadcastMessageEl = document.getElementById('broadcast-message');
+  const broadcastSendEl = document.getElementById('broadcast-send');
+  const broadcastErrorEl = document.getElementById('broadcast-error');
+
+  let broadcastsData = [];
+  let readIds = JSON.parse(localStorage.getItem('broadcast_read') || '[]');
+
+  async function loadBroadcasts() {
+    const { data } = await supabase.from('Broadcast').select('*').order('createdAt', { ascending: false }).limit(20);
+    broadcastsData = data || [];
+    const unread = broadcastsData.filter(b => !readIds.includes(b.id)).length;
+    bellBadge.textContent = unread;
+    bellBadge.dataset.count = unread;
+    bellBadge.style.display = unread > 0 ? 'flex' : 'none';
+  }
+
+  function markAllRead() {
+    broadcastsData.forEach(b => { if (!readIds.includes(b.id)) readIds.push(b.id); });
+    localStorage.setItem('broadcast_read', JSON.stringify(readIds));
+    bellBadge.textContent = '0';
+    bellBadge.dataset.count = '0';
+    bellBadge.style.display = 'none';
+    renderBroadcastList();
+  }
+
+  function renderBroadcastList() {
+    if (broadcastsData.length === 0) {
+      broadcastListEl.innerHTML = '';
+      broadcastEmptyEl.style.display = 'block';
+    } else {
+      broadcastEmptyEl.style.display = 'none';
+      broadcastListEl.innerHTML = broadcastsData.map(b => {
+        const isUnread = !readIds.includes(b.id);
+        return `<div class="broadcast-item ${isUnread ? 'unread' : ''}">
+          <div class="broadcast-title">${escapeHTML(b.title)}</div>
+          <div class="broadcast-message">${escapeHTML(b.message)}</div>
+          <div class="broadcast-time">${timeAgo(b.createdAt)}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  function openBroadcastModal() {
+    renderBroadcastList();
+    broadcastFormEl.style.display = (currentUserProfile && currentUserProfile.isAdmin) ? 'block' : 'none';
+    broadcastModalEl.classList.add('active');
+    markAllRead();
+  }
+
+  broadcastCloseEl.addEventListener('click', () => broadcastModalEl.classList.remove('active'));
+  broadcastModalEl.addEventListener('click', (e) => { if (e.target === broadcastModalEl) broadcastModalEl.classList.remove('active'); });
+
+  btnBell.addEventListener('click', () => {
+    if (!currentUser) { openModal('login'); return; }
+    openBroadcastModal();
+  });
+
+  broadcastSendEl.addEventListener('click', async () => {
+    const title = broadcastTitleEl.value.trim();
+    const message = broadcastMessageEl.value.trim();
+    if (!title || !message) {
+      broadcastErrorEl.textContent = 'Judul dan pesan harus diisi.';
+      broadcastErrorEl.style.display = 'block';
+      return;
+    }
+    broadcastSendEl.disabled = true;
+    broadcastSendEl.textContent = 'Mengirim...';
+    broadcastErrorEl.style.display = 'none';
+    try {
+      const { error } = await supabase.from('Broadcast').insert({
+        adminId: currentUser.id,
+        title: title,
+        message: message
+      });
+      if (error) throw error;
+      broadcastTitleEl.value = '';
+      broadcastMessageEl.value = '';
+      await loadBroadcasts();
+      renderBroadcastList();
+      showToast('Broadcast terkirim ke semua user!');
+    } catch (err) {
+      broadcastErrorEl.textContent = 'Gagal mengirim broadcast.';
+      broadcastErrorEl.style.display = 'block';
+    } finally {
+      broadcastSendEl.disabled = false;
+      broadcastSendEl.textContent = 'Kirim Broadcast';
     }
   });
 
-  function escapeHTML(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  function timeAgo(dateStr) {
-    const now = new Date();
-    const then = new Date(dateStr);
-    const sec = Math.floor((now - then) / 1000);
-    if (sec < 60) return 'baru saja';
-    if (sec < 3600) return Math.floor(sec / 60) + 'm lalu';
-    if (sec < 86400) return Math.floor(sec / 3600) + 'j lalu';
-    return Math.floor(sec / 86400) + 'h lalu';
-  }
-
-  loadAllRatings();
+  loadBroadcasts();
+  setInterval(loadBroadcasts, 60000);
 
   function hideAllSections() {
     document.querySelectorAll('section[id]').forEach(s => {
@@ -1417,6 +1459,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   currentUser = null;
   btnLogin.style.display = 'block';
+  btnBell.style.display = 'none';
   userMenu.style.display = 'none';
   dropdownFavorites.style.display = 'none';
   document.getElementById('dropdown-history').style.display = 'none';
