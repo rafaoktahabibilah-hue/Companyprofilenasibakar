@@ -669,8 +669,6 @@ button {
 /* ===== SECTION COMMON ===== */
 .section {
   padding: 80px 0;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 500px;
 }
 
 .section-header {
