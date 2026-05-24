@@ -1,6 +1,16 @@
 import { supabase, SUPABASE_URL, SUPABASE_ANON_KEY } from './supabase-client.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Dark mode toggle
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    });
+  }
+
   const navbar = document.getElementById('navbar');
   const hamburger = document.getElementById('hamburger');
   const navMenu = document.getElementById('nav-menu');
@@ -1142,8 +1152,176 @@ document.addEventListener('DOMContentLoaded', () => {
       const { error } = await supabase.from('PollVote').insert({
         userId: currentUser.id,
         characterId: charId
-      });
+  // ─── RATING SYSTEM ───
+  let ratingsCache = {};
 
+  async function loadAllRatings() {
+    const { data } = await supabase.from('Rating').select('*');
+    ratingsCache = {};
+    if (data) {
+      data.forEach(r => {
+        const key = r.mangaId;
+        if (!ratingsCache[key]) ratingsCache[key] = { total: 0, count: 0, userRating: 0 };
+        ratingsCache[key].total += r.rating;
+        ratingsCache[key].count++;
+        if (currentUser && r.userId === currentUser.id) {
+          ratingsCache[key].userRating = r.rating;
+        }
+      });
+    }
+    renderAllRatings();
+  }
+
+  function renderAllRatings() {
+    document.querySelectorAll('.card-manga, .card-novel').forEach(card => {
+      renderRatingCard(card);
+    });
+  }
+
+  function renderRatingCard(card) {
+    const itemId = card.dataset.id;
+    if (!itemId) return;
+    const info = ratingsCache[itemId] || { total: 0, count: 0, userRating: 0 };
+    const avg = info.count > 0 ? Math.round(info.total / info.count) : 0;
+    const starStr = [1,2,3,4,5].map(i =>
+      `<span class="star ${i <= (info.userRating || avg) ? 'filled' : ''}" data-value="${i}">★</span>`
+    ).join('');
+
+    let existing = card.querySelector('.rating-row');
+    if (existing) existing.remove();
+
+    const row = document.createElement('div');
+    row.className = 'rating-row';
+    row.innerHTML = `
+      <span class="stars ${currentUser ? 'interactive' : ''}">${starStr}</span>
+      ${avg > 0 ? `<span class="rating-avg">${(info.total/info.count).toFixed(1)}</span><span class="rating-count">(${info.count})</span>` : '<span class="rating-count">no ratings</span>'}
+    `;
+    card.querySelector('.card-info')?.appendChild(row);
+  }
+
+  document.addEventListener('click', async (e) => {
+    if (!currentUser) return;
+    const starEl = e.target.closest('.star');
+    if (!starEl || !starEl.parentElement?.classList.contains('interactive')) return;
+    const card = starEl.closest('.card-manga, .card-novel');
+    if (!card) return;
+    const itemId = card.dataset.id;
+    const rating = parseInt(starEl.dataset.value);
+    if (!itemId || !rating) return;
+
+    try {
+      await supabase.from('Rating').upsert({
+        userId: currentUser.id,
+        mangaId: itemId,
+        rating: rating
+      }, { onConflict: 'userId,mangaId' });
+      await loadAllRatings();
+    } catch (err) {
+      console.error('Rating error:', err);
+    }
+  });
+
+  // ─── REVIEW SYSTEM ───
+  let currentReviewMangaId = '';
+  let currentReviewMangaTitle = '';
+  const reviewModal = document.getElementById('review-modal');
+  const reviewClose = document.getElementById('review-close');
+  const reviewList = document.getElementById('review-list');
+  const reviewInput = document.getElementById('review-input');
+  const reviewSubmit = document.getElementById('review-submit');
+  const reviewEmpty = document.getElementById('review-empty');
+  const reviewMangaTitle = document.getElementById('review-manga-title');
+
+  async function loadReviews(mangaId) {
+    const { data } = await supabase.from('Review').select('*').eq('mangaId', mangaId).order('createdAt', { ascending: false });
+    if (data && data.length > 0) {
+      reviewEmpty.style.display = 'none';
+      reviewList.style.display = 'flex';
+      reviewList.innerHTML = data.map(r => `
+        <div class="review-item">
+          <div class="review-header">
+            <span class="review-user">${escapeHTML(r.userName)}</span>
+            <span class="review-time">${timeAgo(r.createdAt)}</span>
+          </div>
+          <p class="review-text">${escapeHTML(r.text)}</p>
+        </div>
+      `).join('');
+    } else {
+      reviewEmpty.style.display = 'block';
+      reviewList.style.display = 'none';
+    }
+  }
+
+  function openReviewModal(mangaId, mangaTitle) {
+    if (!currentUser) { openModal('login'); return; }
+    currentReviewMangaId = mangaId;
+    currentReviewMangaTitle = mangaTitle || 'Unknown';
+    reviewMangaTitle.textContent = currentReviewMangaTitle;
+    reviewInput.value = '';
+    loadReviews(mangaId);
+    reviewModal.classList.add('active');
+  }
+
+  function closeReviewModal() {
+    reviewModal.classList.remove('active');
+  }
+
+  reviewClose.addEventListener('click', closeReviewModal);
+  reviewModal.addEventListener('click', (e) => { if (e.target === reviewModal) closeReviewModal(); });
+
+  reviewSubmit.addEventListener('click', async () => {
+    const text = reviewInput.value.trim();
+    if (!text || text.length < 3) { showToast('Komentar minimal 3 karakter.'); return; }
+    if (text.length > 300) { showToast('Maksimal 300 karakter.'); return; }
+
+    reviewSubmit.disabled = true;
+    reviewSubmit.textContent = '...';
+    try {
+      const { error } = await supabase.from('Review').insert({
+        userId: currentUser.id,
+        userName: currentUser.user_metadata?.displayName || currentUser.email?.split('@')[0] || 'Anon',
+        mangaId: currentReviewMangaId,
+        mangaTitle: currentReviewMangaTitle,
+        text: text
+      });
+      if (error) throw error;
+      reviewInput.value = '';
+      await loadReviews(currentReviewMangaId);
+      showToast('Komentar terkirim!');
+    } catch (err) {
+      showToast('Gagal kirim komentar.');
+    } finally {
+      reviewSubmit.disabled = false;
+      reviewSubmit.textContent = 'Kirim';
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-review');
+    if (btn) {
+      const card = btn.closest('.card-manga, .card-novel');
+      if (card) openReviewModal(card.dataset.id, card.dataset.title);
+    }
+  });
+
+  function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function timeAgo(dateStr) {
+    const now = new Date();
+    const then = new Date(dateStr);
+    const sec = Math.floor((now - then) / 1000);
+    if (sec < 60) return 'baru saja';
+    if (sec < 3600) return Math.floor(sec / 60) + 'm lalu';
+    if (sec < 86400) return Math.floor(sec / 3600) + 'j lalu';
+    return Math.floor(sec / 86400) + 'h lalu';
+  }
+
+  loadAllRatings();
+});
       if (error) {
         if (error.code === '23505') {
           showToast('Kamu sudah memilih!');
