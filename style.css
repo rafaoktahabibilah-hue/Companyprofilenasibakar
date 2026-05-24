@@ -2974,34 +2974,6 @@ button {
   }
 }
 
-/* ===== SUPPORT / DONATION ===== */
-.btn-amount {
-  padding: 14px 12px;
-  border-radius: var(--radius-md);
-  font-weight: 700;
-  font-size: 0.95rem;
-  border: 2px solid var(--border-light);
-  background: var(--bg-white);
-  color: var(--text-dark);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.btn-amount:hover {
-  border-color: var(--primary);
-  background: rgba(37, 99, 235, 0.05);
-  color: var(--primary);
-  transform: translateY(-2px);
-}
-
-.btn-amount.selected {
-  border-color: var(--primary);
-  background: var(--primary);
-  color: white;
-  box-shadow: var(--shadow-colored);
-}
-
 #support-modal .btn-submit {
   width: 100%;
 
