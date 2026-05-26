@@ -2315,12 +2315,12 @@ button {
 
 .btn-remove-history {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: var(--bg-light);
+  background: rgba(0,0,0,0.06);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2328,11 +2328,17 @@ button {
   transition: all 0.2s ease;
   color: var(--text-light);
   border: none;
+  z-index: 2;
+  opacity: 0.7;
 }
 
+.card-history:hover .btn-remove-history { opacity: 1; }
+
 .btn-remove-history:hover {
-  background: rgba(255, 107, 107, 0.1);
-  color: var(--primary);
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  opacity: 1 !important;
+  transform: scale(1.1);
 }
 
 /* ===== EMPTY STATE ===== */

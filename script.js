@@ -539,6 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = btn.dataset.id;
         try {
           await supabase.from('History').delete().eq('userId', currentUser.id).eq('mangaId', id);
+          showToast('History dihapus!');
           loadHistory(currentUser.id);
         } catch (error) {
           console.error('Error removing history:', error);
