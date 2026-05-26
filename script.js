@@ -272,11 +272,17 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('dropdown-history').style.display = 'flex';
       navFavorites.style.display = 'inline-block';
       navHistory.style.display = 'inline-block';
-      loadUserData(user);
-      loadFavorites(user.id);
-      loadHistory(user.id);
-      loadExclusiveAccess();
+      const displayName = user.user_metadata?.displayName || user.email?.split('@')[0] || 'User';
+      document.getElementById('user-name').textContent = displayName;
+      document.getElementById('user-avatar').innerHTML = displayName[0]?.toUpperCase() || 'U';
       updateDropdownUI();
+      loadUserData(user);
+      Promise.all([
+        loadFavorites(user.id),
+        loadHistory(user.id),
+        loadExclusiveAccess(),
+        loadAllRatings()
+      ]).catch(() => {});
     } else {
       btnLogin.style.display = 'block';
       btnBell.style.display = 'none';
@@ -604,10 +610,15 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Server Supabase sedang lambat. Coba lagi nanti.')), 15000)
+        );
+        const signInPromise = supabase.auth.signInWithPassword({
           email: authEmail.value,
           password: authPassword.value
         });
+        const result = await Promise.race([signInPromise, timeoutPromise]);
+        const { data, error } = result;
         if (error) throw error;
         closeModal();
       }
