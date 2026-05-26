@@ -275,6 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loadUserData(user);
       loadFavorites(user.id);
       loadHistory(user.id);
+      loadExclusiveAccess();
       updateDropdownUI();
     } else {
       btnLogin.style.display = 'block';
@@ -285,6 +286,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('dropdown-history').style.display = 'none';
       navFavorites.style.display = 'none';
       navHistory.style.display = 'none';
+      navExclusive.style.display = 'none';
+      btnAdminPanel.style.display = 'none';
       favoritesSection.style.display = 'none';
       historySection.style.display = 'none';
       favoritesData = [];
@@ -300,6 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
       .single();
 
     if (data) {
+      currentUserProfile = data;
+      btnAdminPanel.style.display = (data.isAdmin) ? 'flex' : 'none';
       updateProfileUI(data);
     } else {
       const fallback = {
@@ -1281,6 +1286,136 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadAllRatings();
 
+  // ─── EXCLUSIVE MANGA SYSTEM ───
+  const navExclusive = document.getElementById('nav-exclusive');
+  const exclusiveSection = document.getElementById('exclusive');
+  const exclusiveGrid = document.getElementById('exclusive-grid');
+  const btnAdminPanel = document.getElementById('btn-admin-panel');
+  const adminModal = document.getElementById('admin-modal');
+  const adminModalClose = document.getElementById('admin-modal-close');
+  const adminUserEmail = document.getElementById('admin-user-email');
+  const adminAccessList = document.getElementById('admin-access-list');
+  const adminAccessEmpty = document.getElementById('admin-access-empty');
+  const adminError = document.getElementById('admin-error');
+  const adminGrantBtn = document.getElementById('admin-grant-btn');
+
+  let hasExclusiveAccess = false;
+  const exclusiveMangas = [
+    { id: 'haraguro-sister', title: 'Haraguro Sister x Kusogaki', cover: 'Cover/cover3.jpeg', genre: 'Mature, Romance', chapter: 'Full', pdf: 'https://nhubpjovnpwadaxxsqyt.supabase.co/storage/v1/object/public/files/haraguro-sister.pdf' }
+  ];
+
+  async function loadExclusiveAccess() {
+    if (!currentUser) { hasExclusiveAccess = false; renderExclusiveUI(); return; }
+    const { data } = await supabase.from('ExclusiveAccess').select('mangaId').eq('userId', currentUser.id);
+    hasExclusiveAccess = data && data.length > 0;
+    renderExclusiveUI();
+  }
+
+  function renderExclusiveUI() {
+    if (hasExclusiveAccess) {
+      navExclusive.style.display = 'inline-block';
+      exclusiveSection.style.display = 'block';
+      exclusiveGrid.innerHTML = exclusiveMangas.map(m => `
+        <div class="card-manga" data-id="${m.id}" data-title="${m.title}" data-cover="${m.cover}" data-genre="${m.genre}" data-type="manga">
+          <div class="card-cover">
+            <img loading="lazy" decoding="async" src="${m.cover}" alt="${m.title}">
+            <span class="card-badge badge-new">EXCLUSIVE</span>
+            <div class="card-overlay">
+              <button class="btn-favorite" aria-label="Add to favorites"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></button>
+              <button class="btn-review"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+              <a href="${m.pdf}" target="_blank" class="btn-read">Baca</a>
+            </div>
+          </div>
+          <div class="card-info">
+            <span class="card-genre">${m.genre}</span>
+            <h3 class="card-title">${m.title}</h3>
+            <span class="card-chapter">${m.chapter}</span>
+          </div>
+        </div>
+      `).join('');
+      loadAllRatings();
+    } else {
+      navExclusive.style.display = 'none';
+      exclusiveSection.style.display = 'none';
+      exclusiveGrid.innerHTML = '';
+    }
+  }
+
+  navExclusive.addEventListener('click', (e) => {
+    e.preventDefault();
+    hideAllSections();
+    exclusiveSection.style.display = 'block';
+    navLinks.forEach(l => l.classList.remove('active'));
+    navExclusive.classList.add('active');
+    window.scrollTo({ top: exclusiveSection.offsetTop - 80, behavior: 'smooth' });
+  });
+
+  // ─── ADMIN PANEL ───
+  async function loadAdminAccess() {
+    const { data } = await supabase.from('ExclusiveAccess').select('*, User:userId(email)').order('grantedAt', { ascending: false });
+    if (data && data.length > 0) {
+      adminAccessEmpty.style.display = 'none';
+      adminAccessList.style.display = 'flex';
+      adminAccessList.innerHTML = data.map(a => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-light); border-radius: 8px;">
+          <span style="font-size: 0.85rem; font-weight: 600;">${a.User?.email || a.userId}</span>
+          <button class="btn-revoke" data-id="${a.id}" style="padding: 4px 12px; border-radius: 20px; background: rgba(220,38,38,0.1); color: #dc2626; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Hapus</button>
+        </div>
+      `).join('');
+    } else {
+      adminAccessEmpty.style.display = 'block';
+      adminAccessList.style.display = 'none';
+    }
+  }
+
+  btnAdminPanel.addEventListener('click', async () => {
+    if (!currentUserProfile || !currentUserProfile.isAdmin) return;
+    adminModal.classList.add('active');
+    adminUserEmail.value = '';
+    adminError.style.display = 'none';
+    await loadAdminAccess();
+  });
+
+  adminModalClose.addEventListener('click', () => adminModal.classList.remove('active'));
+  adminModal.addEventListener('click', (e) => { if (e.target === adminModal) adminModal.classList.remove('active'); });
+
+  adminGrantBtn.addEventListener('click', async () => {
+    const email = adminUserEmail.value.trim();
+    if (!email) { adminError.textContent = 'Masukkan email user.'; adminError.style.display = 'block'; return; }
+    adminGrantBtn.disabled = true;
+    adminGrantBtn.textContent = 'Memproses...';
+    adminError.style.display = 'none';
+    try {
+      const { data: user, error: uErr } = await supabase.from('User').select('id').eq('email', email).single();
+      if (uErr || !user) { adminError.textContent = 'User tidak ditemukan.'; adminError.style.display = 'block'; return; }
+      for (const m of exclusiveMangas) {
+        await supabase.from('ExclusiveAccess').upsert({
+          userId: user.id, mangaId: m.id, mangaTitle: m.title,
+          grantedBy: currentUser.id
+        }, { onConflict: 'userId,mangaId' });
+      }
+      adminUserEmail.value = '';
+      await loadAdminAccess();
+      showToast('Akses exclusive diberikan!');
+    } catch (err) {
+      adminError.textContent = 'Gagal memberikan akses.';
+      adminError.style.display = 'block';
+    } finally {
+      adminGrantBtn.disabled = false;
+      adminGrantBtn.textContent = 'Grant Exclusive Access';
+    }
+  });
+
+  document.addEventListener('click', async (e) => {
+    const revokeBtn = e.target.closest('.btn-revoke');
+    if (revokeBtn) {
+      const id = revokeBtn.dataset.id;
+      await supabase.from('ExclusiveAccess').delete().eq('id', id);
+      await loadAdminAccess();
+      showToast('Akses dihapus!');
+    }
+  });
+
   // ─── BROADCAST / NOTIFICATION SYSTEM ───
   const btnBell = document.getElementById('btn-bell');
   const bellBadge = document.getElementById('bell-badge');
@@ -1390,6 +1525,7 @@ document.addEventListener('DOMContentLoaded', () => {
     historySection.style.display = 'none';
     searchResultsSection.style.display = 'none';
     pollingSection.style.display = 'none';
+    exclusiveSection.style.display = 'none';
   }
 
   function performSearch() {
@@ -1465,6 +1601,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('dropdown-history').style.display = 'none';
   navFavorites.style.display = 'none';
   navHistory.style.display = 'none';
+  navExclusive.style.display = 'none';
+  btnAdminPanel.style.display = 'none';
   favoritesSection.style.display = 'none';
   historySection.style.display = 'none';
   pollingSection.style.display = 'none';

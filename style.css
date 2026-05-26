@@ -3236,3 +3236,21 @@ button {
   font-size: 0.7rem;
   color: var(--text-light);
 }
+
+/* ===== EXCLUSIVE SECTION ===== */
+.section-exclusive {
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0.05) 0%, var(--bg-cream) 30%);
+}
+
+.section-exclusive .section-title {
+  color: var(--primary);
+}
+
+.badge-new {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+  color: white !important;
+}
+
+.btn-revoke:hover {
+  background: rgba(220, 38, 38, 0.2) !important;
+}
