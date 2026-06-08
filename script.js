@@ -2358,5 +2358,84 @@ document.addEventListener('DOMContentLoaded', () => {
   function escapeHTML2(str){const div=document.createElement('div');div.textContent=str;return div.innerHTML;}
   function timeAgo2(dateStr){const now=new Date(),then=new Date(dateStr),sec=Math.floor((now-then)/1000);if(sec<60)return'baru saja';if(sec<3600)return Math.floor(sec/60)+'m lalu';if(sec<86400)return Math.floor(sec/3600)+'j lalu';return Math.floor(sec/86400)+'h lalu';}
 
+  // ─── INFO PAGES ───
+  const infoModal = document.getElementById('info-modal');
+  const infoClose = document.getElementById('info-modal-close');
+  const infoTitle = document.getElementById('info-title');
+  const infoContent = document.getElementById('info-content');
+
+  const pages = {
+    about: {
+      title: 'Tentang Kami',
+      body: `<p><strong>Mangacans</strong> adalah platform baca manga & novel online gratis. Kami hadir buat para wibu & pecinta cerita Jepang yang pengen baca tanpa ribet, tanpa bayar, dan selalu update.</p>
+      <h3>Misi Kami</h3>
+      <p>Menyediakan akses bacaan manga & novel gratis untuk semua orang, mendukung para kreator dengan mempromosikan karya mereka, dan membangun komunitas pembaca yang solid.</p>
+      <h3>Kenapa Mangacans?</h3>
+      <p>• <strong>Gratis 100%</strong> — gak ada biaya langganan<br>
+      • <strong>Update rutin</strong> — chapter baru tiap minggu<br>
+      • <strong>Baca online</strong> — langsung di browser, gak perlu download app<br>
+      • <strong>Genre lengkap</strong> — action, romance, comedy, horror, fantasy, & banyak lagi!</p>`
+    },
+    contact: {
+      title: 'Kontak',
+      body: `<p>Ada pertanyaan, saran, atau mau ngelaporin bug? Hubungi kami di:</p>
+      <p>📧 <strong>Email:</strong> <a href="mailto:admin@mangacans.com">admin@mangacans.com</a></p>
+      <p>💬 <strong>Discord:</strong> Join server Discord kami buat diskusi & request manga!</p>
+      <p>🐦 <strong>Twitter/X:</strong> @mangacans_id</p>
+      <h3>Jam Operasional</h3>
+      <p>Senin - Jumat: 09:00 - 18:00 WIB<br>Sabtu: 10:00 - 15:00 WIB<br>Minggu: Libur</p>`
+    },
+    faq: {
+      title: 'FAQ',
+      body: `<h3>Apa itu Mangacans?</h3><p>Platform baca manga & novel online gratis berbasis web.</p>
+      <h3>Apakah benar-benar gratis?</h3><p>Iya! Semua konten di Mangacans bisa diakses gratis tanpa batasan.</p>
+      <h3>Bagaimana cara baca manga?</h3><p>Tinggal klik card manga yang lo suka, terus pilih chapter yang pengen dibaca.</p>
+      <h3>Apakah perlu daftar akun?</h3><p>Untuk baca sih gak wajib. Tapi kalo mau simpen favorite, history, & kasih rating — daftar dulu ya!</p>
+      <h3>Bisa request manga/novel?</h3><p>Bisa banget! DM kami di Discord atau kirim email ke admin@mangacans.com.</p>
+      <h3>Konten di Mangacans legal?</h3><p>Mangacans hanya menyediakan konten yang sudah tersedia secara publik. Kami tidak memonetisasi konten apapun.</p>`
+    },
+    privacy: {
+      title: 'Privacy Policy',
+      body: `<p><strong>Terakhir diperbarui: 8 Juni 2026</strong></p>
+      <p>Mangacans menghargai privasi kamu. Halaman ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi data pribadi kamu.</p>
+      <h3>Data yang Kami Kumpulkan</h3>
+      <p>• Email (saat mendaftar akun)<br>• Nama profil / display name<br>• Riwayat bacaan (history)<br>• Daftar favorit<br>• Rating & komentar yang kamu berikan</p>
+      <h3>Bagaimana Kami Menggunakannya</h3>
+      <p>• Untuk mempersonalisasi pengalaman baca kamu<br>• Untuk menyimpan progres bacaan<br>• Untuk fitur komunitas (rating & komentar)<br>• Kami <strong>TIDAK</strong> membagikan data kamu ke pihak ketiga</p>
+      <h3>Keamanan</h3>
+      <p>Kami menggunakan Supabase untuk autentikasi dan penyimpanan data. Semua koneksi dienkripsi dengan HTTPS.</p>
+      <h3>Hak Kamu</h3>
+      <p>Kamu bisa menghapus akun kapan saja dengan menghubungi admin@mangacans.com. Semua data kamu akan dihapus permanen.</p>`
+    },
+    terms: {
+      title: 'Terms of Service',
+      body: `<p><strong>Terakhir diperbarui: 8 Juni 2026</strong></p>
+      <p>Dengan menggunakan Mangacans, kamu setuju dengan ketentuan berikut:</p>
+      <h3>Layanan</h3>
+      <p>• Mangacans menyediakan akses bacaan manga & novel secara gratis<br>• Layanan dapat berubah sewaktu-waktu tanpa pemberitahuan<br>• Akses ke beberapa fitur mungkin memerlukan pendaftaran akun</p>
+      <h3>Perilaku Pengguna</h3>
+      <p>• Dilarang mengunggah konten ilegal, spam, atau SARA<br>• Dilarang mencoba meretas atau merusak sistem kami<br>• Hormati sesama pengguna dalam komentar & diskusi</p>
+      <h3>Hak Cipta</h3>
+      <p>• Semua manga, novel, dan konten adalah milik penulis & penerbit asli<br>• Mangacans tidak mengklaim kepemilikan apapun<br>• Jika kamu pemegang hak cipta dan keberatan, hubungi kami di admin@mangacans.com</p>
+      <h3>Batasan Tanggung Jawab</h3>
+      <p>Mangacans tidak bertanggung jawab atas kerusakan atau kerugian yang timbul dari penggunaan layanan ini.</p>`
+    }
+  };
+
+  document.querySelectorAll('.info-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const page = link.dataset.page;
+      if (pages[page]) {
+        infoTitle.textContent = pages[page].title;
+        infoContent.innerHTML = pages[page].body;
+        infoModal.classList.add('active');
+      }
+    });
+  });
+
+  infoClose.addEventListener('click', () => infoModal.classList.remove('active'));
+  infoModal.addEventListener('click', (e) => { if (e.target === infoModal) infoModal.classList.remove('active'); });
+
   loadAllRatings();
 });
