@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         {num: 4, title: 'Chapter 4', pages: 34, pdfStart: 103},
         {num: 5, title: 'Chapter 5', pages: 33, pdfStart: 137},
       ],
-      pdf: 're zero/Re Zero kara Hajimeru Isekai Seikatsu - Daisanshou - Truth of Zero - c006-010 (v02) [One Time Scans].pdf',
+      pdf: 'https://nhubpjovnpwadaxxsqyt.supabase.co/storage/v1/object/public/files/re-zero.pdf',
     },
     'cote-vol1': {
       synopsis: 'Sekolah Menengah Atas Kodo Ikusei, sekolah prestisius dengan sistem kelas kejam. Kiyotaka Ayanokoji mulai menunjukkan kemampuan sejatinya.',
@@ -174,12 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
         {num: 2, title: 'Volume 2', pages: 234},
         {num: 3, title: 'Volume 3', pages: 240},
       ],
-      pdf: ['Kumpulannovel/novel1.pdf', 'Kumpulannovel/novel2.pdf', 'Kumpulannovel/novel3.pdf'],
+      pdf: ['https://nhubpjovnpwadaxxsqyt.supabase.co/storage/v1/object/public/files/novel1.pdf', 'https://nhubpjovnpwadaxxsqyt.supabase.co/storage/v1/object/public/files/novel2.pdf', 'https://nhubpjovnpwadaxxsqyt.supabase.co/storage/v1/object/public/files/novel3.pdf'],
     },
     'berserk': {
       synopsis: 'Guts, pendekar bayaran dengan pedang besar, memburu makhluk kegelapan di dunia abad pertengahan yang penuh kekerasan dan pengkhianatan.',
       chapters: [{num: 1, title: 'Volume 6', pages: 225}],
-      pdf: 'Kumpulankomik/Berserk v06 (2005) (Digital) (danke-Empire).pdf',
+      pdf: 'https://nhubpjovnpwadaxxsqyt.supabase.co/storage/v1/object/public/files/berserk.pdf',
     }
   };
 
