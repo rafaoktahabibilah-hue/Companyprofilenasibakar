@@ -1486,7 +1486,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentUser) saveToHistory(card);
         const id = card.dataset.id;
         const type = card.dataset.type;
-        openDetailPage(id, type);
+        const data = mangaDetailData[id];
+        if (data && data.pdf && typeof data.pdf === 'string') {
+          window.open(data.pdf, '_blank');
+        } else if (data && Array.isArray(data.pdf) && data.pdf[0]) {
+          window.open(data.pdf[0], '_blank');
+        } else {
+          openDetailPage(id, type);
+        }
       }
     }
   });
@@ -1500,11 +1507,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const type = novelCard.dataset.type;
       if (volumeBtn) {
         const chNum = parseInt(volumeBtn.dataset.chapter) || 1;
-        const cover = novelCard.dataset.cover;
-        const title = novelCard.dataset.title;
-        currentDetailId = id;
-        currentDetailType = type;
-        openMangaReader(title, cover, `Volume ${chNum}`, chNum);
+        const data = mangaDetailData[id];
+        if (data && Array.isArray(data.pdf) && data.pdf[chNum - 1]) {
+          window.open(data.pdf[chNum - 1], '_blank');
+        } else if (data && typeof data.pdf === 'string') {
+          window.open(data.pdf, '_blank');
+        } else {
+          const cover = novelCard.dataset.cover;
+          const title = novelCard.dataset.title;
+          currentDetailId = id;
+          currentDetailType = type;
+          openMangaReader(title, cover, 'Volume ' + chNum, chNum);
+        }
       } else {
         openDetailPage(id, type);
       }
