@@ -20,8 +20,8 @@ Thumbs.db
 # Windows reserved names
 nul
 
-# Large PDFs (host separately)
+# Large files
 Kumpulankomik/*.pdf
 Kumpulannovel/*.pdf
 re zero/*.pdf
-
+Pages/

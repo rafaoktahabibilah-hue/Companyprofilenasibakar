@@ -17,13 +17,15 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "netlify-cli": "^26.0.2",
     "prisma": "^7.8.0"
   },
   "dependencies": {
     "@prisma/client": "^7.8.0",
     "@supabase/supabase-js": "^2.105.3",
     "bcryptjs": "^3.0.3",
-    "pg": "^8.20.0"
+    "canvas": "^3.2.3",
+    "pdfjs-dist": "^4.0.379",
+    "pg": "^8.20.0",
+    "sharp": "^0.34.5"
   }
 }

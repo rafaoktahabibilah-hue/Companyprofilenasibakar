@@ -21,7 +21,8 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-  let filePath = path.join(ROOT, req.url === '/' ? 'index.html' : req.url);
+  let filePath = path.join(ROOT, req.url === '/' ? 'index.html' : decodeURIComponent(req.url));
+  
   const ext = path.extname(filePath);
   const contentType = mimeTypes[ext] || 'application/octet-stream';
 

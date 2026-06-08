@@ -17,6 +17,8 @@ model User {
   createdAt      DateTime   @default(now())
   favorites      Favorite[]
   history        History[]
+  likes          Like[]
+  comments       Comment[]
 }
 
 model Favorite {
@@ -46,6 +48,27 @@ model History {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, mangaId])
+}
+
+model Like {
+  id      String   @id @default(uuid())
+  userId  String
+  mangaId String
+  type    String
+  createdAt DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mangaId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  userId    String
+  mangaId   String
+  type      String
+  text      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PollVote {
