@@ -318,6 +318,8 @@ button {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-dark);
+  flex-shrink: 0;
+  text-decoration: none;
 }
 
 .nav-logo-img {
@@ -373,6 +375,8 @@ button {
 .nav-menu {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .nav-link {
