@@ -985,12 +985,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     list.innerHTML = comments.map(c => {
-      const name = c.user?.displayName || c.user?.email?.split('@')[0] || 'User';
-      const initial = name[0].toUpperCase();
-      const time = new Date(c.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      const name = c.user?.displayName || c.userName || 'User';
+      const avatar = c.user?.selectedAvatar || c.user?.photoURL;
+      const avatarHTML = avatar
+        ? `<img src="${avatar}" onerror="this.style.display='none';this.parentElement.textContent='${name[0].toUpperCase()}'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+        : name[0].toUpperCase();
+      const time = timeAgo2(c.createdAt);
       return `
         <div class="comment-item">
-          <div class="comment-avatar">${initial}</div>
+          <div class="comment-avatar">${avatarHTML}</div>
           <div class="comment-body">
             <div class="comment-author">${name}</div>
             <div class="comment-text">${c.text}</div>
