@@ -1,0 +1,12 @@
+[build]
+  publish = "."
+
+[dev]
+  command = "node server.js"
+  port = 3000
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy = "unsafe-none"
+    Cross-Origin-Embedder-Policy = "unsafe-none"

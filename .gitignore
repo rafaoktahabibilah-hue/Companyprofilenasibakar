@@ -1,0 +1,19 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+nul
+insert-features.js
+Pages/
+Kumpulankomik/*.pdf
+Kumpulannovel/*.pdf
+re zero/*.pdf
+
+# Images (host on Supabase Storage)
+Cover/
+Bocchi_the_rock/
+Polling_karakter/
+Kumpulanavatar/
+Logomangacansremovebg.png
+favicon.svg
+Random/
