@@ -1011,6 +1011,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await supabase.from('Comment').insert({
         userId: currentUser.id,
+        userName: currentUser.user_metadata?.displayName || currentUser.email?.split('@')[0] || 'Anon',
         mangaId: currentDetailId,
         type: currentDetailType,
         text: text
