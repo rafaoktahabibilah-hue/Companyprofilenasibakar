@@ -170,11 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'cote-vol1': {
       synopsis: 'Sekolah Menengah Atas Kodo Ikusei, sekolah prestisius dengan sistem kelas kejam. Kiyotaka Ayanokoji mulai menunjukkan kemampuan sejatinya.',
       chapters: [
-        {num: 1, title: 'Volume 1', pages: 232},
-        {num: 2, title: 'Volume 2', pages: 234},
-        {num: 3, title: 'Volume 3', pages: 240},
+        {num: 1, title: 'Volume 3', pages: 240},
       ],
-      pdf: ['https://nhubpjovnpwadaxxsqyt.supabase.co/storage/v1/object/public/files/novel1.pdf', 'https://nhubpjovnpwadaxxsqyt.supabase.co/storage/v1/object/public/files/novel2.pdf', 'https://nhubpjovnpwadaxxsqyt.supabase.co/storage/v1/object/public/files/novel3.pdf'],
+      pdf: 'https://nhubpjovnpwadaxxsqyt.supabase.co/storage/v1/object/public/files/novel3.pdf',
     },
     'berserk': {
       synopsis: 'Guts, pendekar bayaran dengan pedang besar, memburu makhluk kegelapan di dunia abad pertengahan yang penuh kekerasan dan pengkhianatan.',
