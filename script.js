@@ -356,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentUser = user;
     if (user) {
       btnLogin.style.display = 'none';
+      btnBell.style.display = 'flex';
       userMenu.style.display = 'block';
       dropdownFavorites.style.display = 'flex';
       document.getElementById('dropdown-history').style.display = 'flex';
@@ -364,15 +365,20 @@ document.addEventListener('DOMContentLoaded', () => {
       loadUserData(user);
       loadFavorites(user.id);
       loadHistory(user.id);
+      loadExclusiveAccess();
+      loadAllRatings();
       updateDropdownUI();
     } else {
       btnLogin.style.display = 'block';
+      btnBell.style.display = 'none';
       userMenu.style.display = 'none';
       dropdownMenu.classList.remove('active');
       dropdownFavorites.style.display = 'none';
       document.getElementById('dropdown-history').style.display = 'none';
       navFavorites.style.display = 'none';
       navHistory.style.display = 'none';
+      navExclusive.style.display = 'none';
+      btnAdminPanel.style.display = 'none';
       favoritesSection.style.display = 'none';
       historySection.style.display = 'none';
       favoritesData = [];
